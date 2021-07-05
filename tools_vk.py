@@ -20,31 +20,34 @@ def get_log(filename):
                 password=log_list[1],
                 token=log_list[2]
             )
+    ff.close()
     session.auth()
     log_list = None
     return session.get_api()
 
 
-# def data_to_file(file_to_write):
-#     with open(file_to_write, 'w', encoding="utf-8") as f:
-#         f.write(str(data))
-#     return f
+def get_group():
+    group_name = askopenfilename()
+    group_list = []
+    with open(group_name, 'r', encoding="utf-8") as f:
+        for line in f:
+            group_list.append(line.rstrip('\n'))
+    return group_list
 
 
-def get_data():
-    data = vk_ses.wall.get(domain='skillbox', count=100)
+def get_data(dom_name):
+    data = vk_ses.wall.get(domain=dom_name, count=100)
     count = int(data.get('count')) // 100
     items = data.get('items')
     for i in range(1, count + 1):
-        items = items + vk_ses.wall.get(domain='skillbox', offset=i * 100)['items']
+        items = items + vk_ses.wall.get(domain=dom_name, offset=i * 100)['items']
     return items
 
 
 filename = askopenfilename()
-# file_to_write = 'data1.txt'
 vk_ses = get_log(filename=filename)
-# data = vk_ses.wall.get(domain='skillbox', count=100)
-item = get_data()
-print(len(item))
-df = pd.DataFrame.from_dict(pd.json_normalize(item), orient='columns')
-df.to_csv('result1.csv', sep=',', index_label='index')
+list_groups_vk = get_group()
+for elem in list_groups_vk:
+    item = get_data(dom_name=elem)
+    df = pd.DataFrame.from_dict(pd.json_normalize(item), orient='columns')
+    df.to_csv(f'{elem}.csv', sep=',', index_label='index')
